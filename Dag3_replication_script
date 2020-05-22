@@ -1,0 +1,127 @@
+#script correlation analysis DAG3, with ROMEIII participants (6405) 
+#upload all files 
+SNP <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/genotype_identified.txt", sep="\t", fill =T, header=T)
+SNP <- SNP[c(2,4)]
+bac <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/abundance_bifido.txt", sep="\t", fill=T, header=T)
+#select for bifidobacterium genus
+bac <- bac[c(1,2,3)]
+r3 <- read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/dag3_diaries/Rome3_with_happy_ending.txt", sep="\t", header=T)
+r3<- r3[c(1,2,57:59)]
+lac <- read.table("/groups/umcg-lifelines/prm03/releases/pheno_lifelines/v1/tab_separated_values/Nutrient_intake_Participant_Results_NEW.dat", sep = "\t", fill = T, header = T)
+lac <- lac[c(1,17,23)]
+
+
+#rome3 IDs will be the standard!
+u_r3 <- unique(r3$Row.names) #this is a vector
+lac_R <- subset(lac, PSEUDOIDEXT %in% u_r3)
+#6284 ids in lac
+
+names(r3)[names(r3)=="Row.names"] <- "PSEUDOIDEXT"
+lac_r3 <- merge(lac_R, r3, by="PSEUDOIDEXT")
+
+#add snp 
+SNP_R <- subset(SNP, PSEUDOIDEXT %in% u_r3) #6157
+lac_r3_snp <- merge(lac_r3, SNP_R, by="PSEUDOIDEXT") #6044
+
+#add bac
+bac_R <- subset(bac, PSEUDOIDEXT %in% u_r3) #6062
+lac_r3_snp_bac <- merge(lac_r3_snp, bac_R, by="PSEUDOIDEXT") #5718
+
+#final dataframe with all the info: 
+FDF <- lac_r3_snp_bac
+
+names(FDF)[2] <- "lactose"
+names(FDF)[8] <- "genotype"
+names(FDF)[10] <-"bifido_genus"
+
+FDF <- FDF[-c(3)]
+FDF <- FDF[-c(4,5)]
+FDF2<-FDF[,c(6,1,3,5,4,2,7)]
+##summary (FDF2$genotype)
+##A/A  G/A  G/G
+##3301 2087  330
+
+##levels(FDF2$genotype)
+## "A/A" "G/A" "G/G"
+levels(FDF2$genotype) <- c("3", "2","1")
+
+#summary(FDF2$FGID)
+#functional bloating functional constipation     functional diarrhea
+#389                     188                      76
+#IBS              IBS strict                      no
+#363                     254                    1945
+#NA's
+#2503
+
+#levels(FDF2$FGID)
+#[1] "functional bloating"     "functional constipation"
+#[3] "functional diarrhea"     "IBS"
+#[5] "IBS strict"              "no"
+levels(FDF2$FGID) <- c("1", "2", "3", "4", "4","0")
+FDF2$FGID[is.na(FDF2$FGID)] <- "0"
+FDF2$FGID<- relevel(FDF2$FGID, "0")
+#need to transform FGID into numeric
+FDF2$FGID <- as.numeric(as.character(FDF2$FGID))
+
+#df ready, let's start from correlation analysis, by creating 2 dfs - with the recessive genotype and rest
+FDF2$rs_is1 <- FDF2$genotype ==1
+sum(FDF2$rs_is1, na.rm=T)
+
+DF_rs1 <- FDF2[!(FDF2$rs_is1=='FALSE'),]
+DF_rs1<-DF_rs1[complete.cases(DF_rs1), ]
+
+DF_rsNOT1 <- FDF2[!(FDF2$rs_is1=='TRUE'),]
+DF_rsNOT1<-DF_rsNOT1[complete.cases(DF_rsNOT1), ]
+
+#start first correlations
+#remember that wilcoxon test is a test of dependency, so the samples are dependent
+#cor.test tests independent samples. 
+
+####SNP - lactose 
+wilcox.test(FDF2$lactose ~ FDF2$rs_is1)
+
+####SNP - bifido abundance 
+wilcox.test(FDF2$bifido_genus ~FDF2$rs_is1)
+
+####SNP - Gut complaints 
+wilcox.test(FDF2$FGID ~ FDF2$rs_is1)
+
+#### milk intake - gut complaints 
+cor.test(FDF2$lactose, FDF2$FGID)
+
+#### bifido - gut complaints 
+cor.test(FDF2$bifido_genus, FDF2$FGID)
+
+#### milk - bifido 
+cor.test(FDF2$lactose, FDF2$bifido_genus)
+
+
+######Use separated dataframes to explore these relations 
+#remember that
+#DF_rsNOT1 
+#DF_rs1
+
+####milk intake - gut complaints 
+cor.test(DF_rs1$FGID, DF_rs1$lactose)
+
+cor.test(DF_rsNOT1$FGID, DF_rsNOT1$lactose)
+
+####Bifido - GC 
+cor.test(DF_rs1$bifido_genus, DF_rs1$FGID)
+
+cor.test(DF_rsNOT1$bifido_genus, DF_rsNOT1$FGID)
+
+####Milk - bifido 
+cor.test(DF_rs1$lactose, DF_rs1$bifido_genus)
+
+cor.test(DF_rsNOT1$lactose, DF_rsNOT1$bifido_genus)
+
+
+
+########mediation
+library(mediation)
+
+m1 <- lm(DF_rs1$bifido_genus ~ DF_rs1$lactose)
+m2<- lm(DF_rs1$FGID ~ DF_rs1$bifido_genus + DF_rs1$lactose)
+mediation_1<- mediate(m1, m2, treat='DF_rs1$lactose', mediator='DF_rs1$bifido_genus')
+summary(mediation_1)
