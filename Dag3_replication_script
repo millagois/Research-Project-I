@@ -57,11 +57,8 @@ levels(FDF2$genotype) <- c("3", "2","1")
 #[1] "functional bloating"     "functional constipation"
 #[3] "functional diarrhea"     "IBS"
 #[5] "IBS strict"              "no"
-levels(FDF2$FGID) <- c("1", "2", "3", "4", "4","0")
-FDF2$FGID[is.na(FDF2$FGID)] <- "0"
-FDF2$FGID<- relevel(FDF2$FGID, "0")
-#need to transform FGID into numeric
-FDF2$FGID <- as.numeric(as.character(FDF2$FGID))
+FDF2$FGID_isT <- FDF2$FGID != "no"
+FDF2$FGID_isT[is.na(FDF2$FGID_isT)]=FALSE
 
 #df ready, let's start from correlation analysis, by creating 2 dfs - with the recessive genotype and rest
 FDF2$rs_is1 <- FDF2$genotype ==1
@@ -84,13 +81,13 @@ wilcox.test(FDF2$lactose ~ FDF2$rs_is1)
 wilcox.test(FDF2$bifido_genus ~FDF2$rs_is1)
 
 ####SNP - Gut complaints 
-wilcox.test(FDF2$FGID ~ FDF2$rs_is1)
+wilcox.test(FDF2$FGID_isT ~ FDF2$rs_is1)
 
 #### milk intake - gut complaints 
-cor.test(FDF2$lactose, FDF2$FGID)
+cor.test(FDF2$lactose, FDF2$FGID_isT)
 
 #### bifido - gut complaints 
-cor.test(FDF2$bifido_genus, FDF2$FGID)
+cor.test(FDF2$bifido_genus, FDF2$FGID_isT)
 
 #### milk - bifido 
 cor.test(FDF2$lactose, FDF2$bifido_genus)
@@ -102,14 +99,14 @@ cor.test(FDF2$lactose, FDF2$bifido_genus)
 #DF_rs1
 
 ####milk intake - gut complaints 
-cor.test(DF_rs1$FGID, DF_rs1$lactose)
+cor.test(DF_rs1$FGID_isT, DF_rs1$lactose)
 
-cor.test(DF_rsNOT1$FGID, DF_rsNOT1$lactose)
+cor.test(DF_rsNOT1$FGID_isT, DF_rsNOT1$lactose)
 
 ####Bifido - GC 
-cor.test(DF_rs1$bifido_genus, DF_rs1$FGID)
+cor.test(DF_rs1$bifido_genus, DF_rs1$FGID_isT)
 
-cor.test(DF_rsNOT1$bifido_genus, DF_rsNOT1$FGID)
+cor.test(DF_rsNOT1$bifido_genus, DF_rsNOT1$FGID_isT)
 
 ####Milk - bifido 
 cor.test(DF_rs1$lactose, DF_rs1$bifido_genus)
@@ -122,6 +119,6 @@ cor.test(DF_rsNOT1$lactose, DF_rsNOT1$bifido_genus)
 library(mediation)
 
 m1 <- lm(DF_rs1$bifido_genus ~ DF_rs1$lactose)
-m2<- lm(DF_rs1$FGID ~ DF_rs1$bifido_genus + DF_rs1$lactose)
+m2<- lm(DF_rs1$FGID_isT ~ DF_rs1$bifido_genus + DF_rs1$lactose)
 mediation_1<- mediate(m1, m2, treat='DF_rs1$lactose', mediator='DF_rs1$bifido_genus')
 summary(mediation_1)
