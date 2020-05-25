@@ -59,6 +59,7 @@ levels(FDF2$genotype) <- c("3", "2","1")
 #[5] "IBS strict"              "no"
 FDF2$FGID_isT <- FDF2$FGID != "no"
 FDF2$FGID_isT[is.na(FDF2$FGID_isT)]=FALSE
+FDF2$FGID_isT <- as.integer(FDF2$FGID_isT)
 
 #df ready, let's start from correlation analysis, by creating 2 dfs - with the recessive genotype and rest
 FDF2$rs_is1 <- FDF2$genotype ==1
