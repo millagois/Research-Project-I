@@ -8,12 +8,12 @@ library(tidyverse)
 library(ggsignif)
 library(mediation)
 #files to use: 
-LLD_gen <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/LLD/LLD_genotype_final.txt", sep="\t", header=T)
-LLD_dairy <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/LLD/LLD_dairy.txt", sep="\t", header=T)
-LLD_lac <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/LLD/LLD_lactose_total.txt", sep="\t", header=T)
-LLD_gut <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/LLD/LLD_gut_complaints.txt", sep="\t", header=T)
-LLD_bifido2 <- read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/LLD/LLD_bifido_RD_corrected.txt", sep="\t", header = T)
-LLD_intrinsic_factors<-  read.table("/groups/umcg-lifelines/tmp01/users/umcg-mgois/data_ready/LLD/LLD_intrinsic_factors.txt", sep="\t", header = T)
+LLD_gen <- read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-mgois/data_ready/LLD/LLD_genotype_final.txt", sep="\t", header=T)
+LLD_dairy <- read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-mgois/data_ready/LLD/LLD_dairy.txt", sep="\t", header=T)
+LLD_lac <- read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-mgois/data_ready/LLD/LLD_lactose_total.txt", sep="\t", header=T)
+LLD_gut <- read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-mgois/data_ready/LLD/LLD_gut_complaints.txt", sep="\t", header=T)
+LLD_bifido2 <- read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-mgois/data_ready/LLD/LLD_bifido_RD_corrected.txt", sep="\t", header = T)
+LLD_intrinsic_factors<-  read.table("/groups/umcg-lifelines/tmp01/projects/dag3_fecal_mgs/umcg-mgois/data_ready/LLD/LLD_intrinsic_factors.txt", sep="\t", header = T)
 
 #merge all dfs into one big one
 LLD_df<- merge(LLD_gen, LLD_bifido2, by = 'LLDEEPID')
