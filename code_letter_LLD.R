@@ -62,7 +62,7 @@ FDF2$LT_TT <- FDF2$rs4988235_number ==3
 DF_LT_TT <- FDF2[!(FDF2$LT_TT=='FALSE'),]
 DF_LT_TT<-DF_LT_TT[complete.cases(DF_LT_TT), ]
 
-##SNP-bifido 
+##SNP-bifido (whole population)
 wilcox.test(FDF2$Bifido_genus_abundance ~ FDF2$LI_GG)
 
 kruskal.test(FDF2$Bifido_genus_abundance ~ FDF2$rs4988235_number)
@@ -76,14 +76,14 @@ boxplot (Bifido_genus_abundance ~ rs4988235_var, data = FDF, col = c("#CC0000", 
 dev.off()
 
 
-#lactose intolerant people 
+##LI individuals
 ###Dairy intake - Gut complaints 
 png("LLD_LI_dairy_GC_combined.png")
 scatter.smooth(DF_LI$dairy, DF_LI$combined, ylab= "Gastrointestinal Symptoms (score)", xlab = "Dairy Intake (g/day)", main= "LLD - LI Recessive Genotype")
 dev.off()
 
 cor.test(DF_LI$dairy, DF_LI$combined)
-
+summary(lm(DF_LI$dairy ~ DF_LI$combined+DF_LI$antrop_BMI))
 ##Dairy intake - all gut complaints: 
 cor_dairy_LI <- cor(DF_LI$dairy, DF_LI[,c("pain", "discomfort", "constipation", "diarrhea", 
                                           "bloating", "flatulence", "burping", "nausea", "combined")], use = 'pairwise.complete.obs')
@@ -106,7 +106,7 @@ png("LLD_LI_lac_GC_combined.png")
 scatter.smooth(DF_LI$lactose, DF_LI$combined, ylab= "Gastrointestinal Symptoms (score)", xlab = "Lactose Intake (g/day)", main= "LLD - LI Recessive Genotype")
 dev.off()
 
-cor.test(DF_LI$lactose, DF_LI$combined)
+summary(lm(DF_LI$lactose ~ DF_LI$combined+DF_LI$antrop_BMI))
 
 ##Lactose intake - all gut complaints: 
 cor_lac_LI <- cor(DF_LI$lactose, DF_LI[,c("pain", "discomfort", "constipation", "diarrhea", 
@@ -195,20 +195,13 @@ dev.off()
 
 cor.test(DF_LI$Bifido_genus_abundance, DF_LI$lactose)
 
-##merge everything 
+##merge all the correlation dfs
 LI_cor_final <- rbind(LI_dairy_cor2, LI_lactose_cor, LI_bifidobacterium_cor)
-write.table(LI_cor_final, file ="LLD__LI_pvals.txt",  col.names =T, row.names =T, append =F)
+write.table(LI_cor_final, file ="LLD_LI_pvals.txt",  col.names =T, row.names =T, append =F)
 
-
-#linha 755 
-###Dairy - Bifidobacterium abundance 
-png("LLD_LI_dairy_bifido.png")
-scatter.smooth(DF_LI$dairy, DF_LI$Bifido_genus_abundance, ylab="Bifidobacterium abundance", xlab = "Dairy intake (g/day)", main = "LLD - LI Recessive Genotype")
-dev.off()
-
-cor.test(DF_LI$Bifido_genus_abundance, DF_LI$dairy)
-
-
+####Final plots
+#Dairy - Bifido
+summary(lm(DF_LI$dairy ~DF_LI$Bifido_genus_abundance+DF_LI$antrop_BMI))
 png("letter_LLD_LI_bif_dairy.png")
 plot (x= DF_LI$Bifido_genus_abundance, y=DF_LI$dairy, col= "#CC0000", pch=16 , cex=2 , xlab = "Bifidobacterium genus abundance (rank transformation)", ylab= "Dairy Intake (rank transformation)", main ="LLD - LI")
 abline(lm(dairy ~ Bifido_genus_abundance, DF_LI), col = "#CC0000", lwd =4)
@@ -288,8 +281,7 @@ abline(lm(bloating ~ Bifido_genus_abundance, DF_LI), col = "#CC0000",  lwd =4)
 text (2.2, 2.4, "P-val: 0.0065")
 dev.off()
 
-
-
+set.seed(1)
 #mediation dairy intake + combined GC
 bifido_dairy <- lm(DF_LI$Bifido_genus_abundance ~ DF_LI$dairy)
 summary(bifido_dairy)
